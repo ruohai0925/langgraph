@@ -1,3 +1,8 @@
+// =============================
+// 1. API REQUEST PAYLOAD
+// LangChain 发送给 Groq API 的内容，包含模型、用户输入、结构化函数定义（tools）和调用要求（tool_choice）。
+// 结构体字段和描述直接影响模型输出的准确性。
+// =============================
 // API REQUEST PAYLOAD
 // This is what LangChain sends to the Groq API
 {
@@ -46,6 +51,11 @@
         }
     }
 }
+// =============================
+// 2. API RESPONSE
+// Groq 返回给 LangChain 的内容。模型没有直接返回文本，而是以结构化函数调用的方式返回结果。
+// arguments 字段是一个 JSON 字符串，包含具体的结构化数据。
+// =============================
 // API RESPONSE
 // This is what Groq returns to LangChain
 {
@@ -79,6 +89,11 @@
         "total_tokens": 99
     }
 }
+// =============================
+// 3. WHAT LANGCHAIN PARSES FROM THE RESPONSE
+// LangChain 从响应中解析出来的 JSON 对象，字段和类型完全符合最初定义的结构体。
+// 这一步是自动完成的，开发者无需手动解析。
+// =============================
 // WHAT LANGCHAIN PARSES FROM THE RESPONSE
 // This is the JSON that gets passed to your Pydantic model
 {
@@ -86,6 +101,11 @@
     "language": "French",
     "capital": "Paris"
 }
+// =============================
+// 4. FINAL PYDANTIC OBJECT
+// 最终返回给你代码的 Pydantic 对象，类型安全、可直接用作后续处理。
+// 结构化输出极大方便了后续自动化处理、数据校验和类型提示。
+// =============================
 // FINAL PYDANTIC OBJECT
 // This is what gets returned to your code
 Country(
@@ -93,4 +113,12 @@ Country(
     language="French",
     capital="Paris"
 )
-  
+
+// 这个 JSON 文件完整展示了结构化输出的全流程：
+// 用户输入 → LangChain 组装 function call 请求 → 大模型返回结构化结果 → LangChain 解析 → Pydantic 对象
+// 优点：类型安全、易于自动化、易于前后端协作。
+// 注意：字段描述要详细，字段名要准确，结构体要和实际需求一致。
+
+// 注意：
+// 标准 JSON 文件本身不允许有注释（如 // ...），所以现在这个文件严格来说不是合法的 JSON 格式，但非常适合做教学和文档说明。如果你需要让它变成可被程序读取的标准 JSON，请先去掉所有注释。
+// 如需保留注释又能被 Python 读取，可以考虑用 .js、.jsonc 或 .md 格式，或者用 Python 的多行字符串做文档说明。

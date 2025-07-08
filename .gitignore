@@ -29,3 +29,6 @@ htmlcov/
 # Ignore Python compiled files
 *.pyo
 *.pyd
+
+*/__pycache__/
+langgraph.code-workspace
