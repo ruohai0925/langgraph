@@ -15,8 +15,10 @@ parser = JsonOutputToolsParser(return_id=True)  # 用于将LLM结构化输出解
 # JsonOutputToolsParser 适合需要原始JSON的场景，return_id=True 会保留工具调用ID。
 
 # Actor Agent Prompt（主回答Agent的提示模板）
+# 这个模板定义了AI代理的核心行为模式，包含三个关键步骤：回答、反思、搜索
 actor_prompt_template = ChatPromptTemplate.from_messages(
     [
+        # 系统消息：定义AI的角色和行为指令
         (
             "system",
             """You are expert AI researcher.
@@ -27,10 +29,16 @@ Current time: {time}
 3. After the reflection, **list 1-3 search queries separately** for researching improvements. Do not include them inside the reflection.
 """,
         ),
+        # 消息占位符：预留位置用于插入用户的实际问题和对话历史
+        # variable_name="messages" 表示这个占位符会被名为"messages"的变量填充
         MessagesPlaceholder(variable_name="messages"),
+        # 最后的系统指令：确保AI按照要求的格式回答问题
         ("system", "Answer the user's question above using the required format."),
     ]
 ).partial(
+    # 使用partial方法预填充time参数
+    # lambda函数确保每次调用时都获取最新的当前时间
+    # 这样AI就能知道回答的时间上下文，提高回答的时效性和准确性
     time=lambda: datetime.datetime.now().isoformat(),  # 自动插入当前时间，便于上下文感知
 )
 # Prompt 设计要清晰，分步指令有助于 LLM 输出结构化内容。
@@ -46,7 +54,7 @@ first_responder_prompt_template = actor_prompt_template.partial(
 llm = ChatOpenAI(model="gpt-4o")  # 初始化OpenAI聊天模型，指定gpt-4o
 # 模型名称要和实际API支持的模型一致。
 
-first_responder_chain = first_responder_prompt_template | llm.bind_tools(tools=[AnswerQuestion], tool_choice='AnswerQuestion') 
+first_responder_chain = first_responder_prompt_template | llm.bind_tools(tools=[AnswerQuestion], tool_choice='AnswerQuestion')
 # | 是LangChain的链式操作符，先用prompt模板生成提示，再用llm生成结构化输出。
 # bind_tools 绑定结构化输出工具（AnswerQuestion），并强制选择该工具。
 # tool_choice 必须和tools列表里的工具名一致，否则不会生效。
@@ -74,10 +82,10 @@ revisor_chain = actor_prompt_template.partial(
 # 工具名、字段、指令要和Pydantic模型严格对应。
 
 # 示例调用（注释掉的部分）
-# response = first_responder_chain.invoke({
-#     "messages": [HumanMessage("AI Agents taking over content creation")]
-# })
-# print(response)
+response = first_responder_chain.invoke({
+    "messages": [HumanMessage("AI Agents taking over content creation")]
+})
+print(response)
 # 演示如何调用首次回答链，传入用户消息，得到结构化输出。
 # 实际调用时要保证输入参数格式和prompt模板一致。
 
